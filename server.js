@@ -6,13 +6,15 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server);
 
+const port = process.env.PORT || 3000;
+
 const __dirname = process.cwd();
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/client.html');
 });
 
-server.listen(3000, () => {
-    console.log('server running at http://localhost:3000');
+server.listen(port, () => {
+    console.log(`server running at port ${port}`);
 });
 
 // ----------------------GAME LOGIC------------------>
@@ -106,13 +108,14 @@ let p2 = null
 
 //Server Loop------->>>
 setInterval(() => {
-    if (isGameRunning) {
+    if (isGameRunning && (p1 != null && p2 != null)) {
         ball.update()
         p1.update()
         p2.update()
 
         io.emit("serverLoop", p1.x, p1.y, p2.x, p2.y, ball.x, ball.y);
     }
+    else isGameRunning = false;
 }, 1000 / 60);
 
 // ----------------------SOCKET CODE------------------>
