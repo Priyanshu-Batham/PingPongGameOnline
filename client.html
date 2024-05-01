@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Beginning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #2f2f2f;
+        }
+
+        canvas {
+            display: block;
+            margin: auto;
+            margin-top: 100px;
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" width="1280" height="720"></canvas>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+    const socket = io();
+
+    alert("INSTRUCTIONS:\nPlayer1:\n 'W' = moveup\n 'S' = movedown\n\nPlayer2:\n 'O' = moveup\n 'L' = movedown")
+
+
+
+    let canvas = document.getElementById('canvas')
+    let c = canvas.getContext('2d')
+
+    let CANVAS_WIDTH = canvas.width
+    let CANVAS_HEIGHT = canvas.height
+
+    let gameOver = false
+
+    class Ball {
+        constructor(x, y, radius) {
+            this.x = x
+            this.y = y
+            this.radius = radius
+        }
+
+        render() {
+            c.beginPath();
+            c.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+            c.fillStyle = 'white';
+            c.fill();
+        }
+    }
+
+    let ball = new Ball(
+        CANVAS_WIDTH / 2,
+        CANVAS_HEIGHT / 2,
+        20,
+    )
+
+    class Player {
+        constructor(x, y, height, width) {
+            this.x = x
+            this.y = y
+            this.height = height
+            this.width = width
+        }
+
+        render() {
+            c.fillStyle = 'white'
+            c.fillRect(this.x, this.y, this.width, this.height)
+        }
+    }
+
+    let p1 = new Player(0, 50, 180, 20)
+    let p2 = new Player(CANVAS_WIDTH - 20, 70, 180, 50)
+
+    document.querySelector('body').addEventListener('keypress', (e) => {
+        let key = e.key
+        console.log(e)
+        if (key === 'w' || key === 's') {
+            socket.emit("clientKeyPressed", key);
+        }
+    })
+
+    //updates from serverLoop
+    socket.on("serverLoop", (p1x, p1y, p2x, p2y, ballx, bally) => {
+        p1.x = p1x;
+        p1.y = p1y;
+        p2.x = p2x;
+        p2.y = p2y;
+        ball.x = ballx;
+        ball.y = bally;
+    })
+
+    function animate() {
+        c.fillStyle = 'black'
+        c.fillRect(0, 0, 1280, 720)
+
+        ball.render()
+        p1.render()
+        p2.render()
+
+        requestAnimationFrame(animate)
+    }
+    animate()
+</script>
+
+</html>
